@@ -1,0 +1,158 @@
+﻿
+> D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:775:    "/api/{session}/send-image": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:776:      "post": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:777:        "tags": ["Messages"],
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:778:        "description": "",
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:779:        "parameters": [
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:780:          {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:781:            "name": "session",
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:782:            "in": "path",
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:783:            "required": true,
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:784:            "schema": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:785:              "type": "string",
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:786:              "example": "NERDWHATS_AMERICA"
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:787:            }
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:788:          }
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:789:        ],
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:790:        "responses": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:791:          "400": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:792:            "description": "Bad Request"
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:793:          },
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:794:          "401": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:795:            "description": "Unauthorized"
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:796:          }
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:797:        },
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:798:        "security": [
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:799:          {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:800:            "bearerAuth": []
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:801:          }
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:802:        ],
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:803:        "requestBody": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:804:          "required": true,
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:805:          "content": {
+> D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1034:    "/api/{session}/send-file": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1035:      "post": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1036:        "tags": ["Messages"],
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1037:        "description": "",
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1038:        "parameters": [
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1039:          {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1040:            "name": "session",
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1041:            "in": "path",
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1042:            "required": true,
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1043:            "schema": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1044:              "type": "string",
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1045:              "example": "NERDWHATS_AMERICA"
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1046:            }
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1047:          }
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1048:        ],
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1049:        "responses": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1050:          "400": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1051:            "description": "Bad Request"
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1052:          },
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1053:          "401": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1054:            "description": "Unauthorized"
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1055:          }
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1056:        },
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1057:        "security": [
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1058:          {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1059:            "bearerAuth": []
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1060:          }
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1061:        ],
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1062:        "requestBody": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1063:          "required": true,
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1064:          "content": {
+> D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1110:    "/api/{session}/send-file-base64": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1111:      "post": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1112:        "tags": ["Messages"],
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1113:        "description": "",
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1114:        "parameters": [
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1115:          {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1116:            "name": "session",
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1117:            "in": "path",
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1118:            "required": true,
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1119:            "schema": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1120:              "type": "string",
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1121:              "example": "NERDWHATS_AMERICA"
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1122:            }
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1123:          }
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1124:        ],
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1125:        "responses": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1126:          "400": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1127:            "description": "Bad Request"
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1128:          },
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1129:          "401": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1130:            "description": "Unauthorized"
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1131:          }
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1132:        },
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1133:        "security": [
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1134:          {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1135:            "bearerAuth": []
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1136:          }
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1137:        ],
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1138:        "requestBody": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1139:          "required": true,
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:1140:          "content": {
+> D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6290:    "/api/{session}/send-image-storie": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6291:      "post": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6292:        "tags": ["Status Stories"],
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6293:        "description": "",
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6294:        "parameters": [
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6295:          {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6296:            "name": "session",
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6297:            "in": "path",
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6298:            "required": true,
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6299:            "schema": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6300:              "type": "string",
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6301:              "example": "NERDWHATS_AMERICA"
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6302:            }
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6303:          }
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6304:        ],
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6305:        "responses": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6306:          "400": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6307:            "description": "Bad Request"
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6308:          },
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6309:          "401": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6310:            "description": "Unauthorized"
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6311:          }
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6312:        },
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6313:        "security": [
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6314:          {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6315:            "bearerAuth": []
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6316:          }
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6317:        ],
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6318:        "requestBody": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6319:          "required": true,
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6320:          "content": {
+> D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6343:    "/api/{session}/send-video-storie": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6344:      "post": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6345:        "tags": ["Status Stories"],
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6346:        "description": "",
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6347:        "parameters": [
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6348:          {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6349:            "name": "session",
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6350:            "in": "path",
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6351:            "required": true,
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6352:            "schema": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6353:              "type": "string",
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6354:              "example": "NERDWHATS_AMERICA"
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6355:            }
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6356:          }
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6357:        ],
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6358:        "responses": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6359:          "400": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6360:            "description": "Bad Request"
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6361:          },
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6362:          "401": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6363:            "description": "Unauthorized"
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6364:          }
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6365:        },
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6366:        "security": [
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6367:          {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6368:            "bearerAuth": []
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6369:          }
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6370:        ],
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6371:        "requestBody": {
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6372:          "required": true,
+  D:\Idos\Coding\NodeJS\wppconnect-server\src\swagger.json:6373:          "content": {
+
+

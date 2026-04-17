@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+:root {
+  --wa-bg: #111b21;
+  --wa-panel: #202c33;
+  --wa-chat-bg: #0b141a;
+  --wa-green: #00a884;
+  --wa-outgoing: #005c4b;
+  --wa-incoming: #202c33;
+  --wa-text: #e9edef;
+  --wa-secondary: #8696a0;
+  --wa-border: #222d34;
+  
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--sans);
+  background-color: #0c1317;
+  color: var(--wa-text);
+  overflow: hidden;
+  height: 100vh;
+}
+
+#root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* CUSTOM SCROLLBAR */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 168, 132, 0.1) !important;
+}
+
+@keyframes flash-highlight {
+  0% { background-color: rgba(255, 255, 255, 0.3); }
+  50% { background-color: rgba(255, 255, 255, 0.1); }
+  100% { background-color: transparent; }
+}
+
+.message-highlight > .message-bubble {
+  animation: flash-highlight 2s ease-in-out;
+}
+
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* CHAT WALLPAPER (WhatsApp Doodle Pattern) */
+.chat-wallpaper {
+  background-color: #0b141a;
+  background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+  background-repeat: repeat;
+  background-size: 400px;
+  opacity: 0.06;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* 
+ * FLOATING ITEM (WhatsApp Desktop Style)
+ * Active chat items have horizontal margin and are rounded.
+ */
+.chat-item-floating {
+  margin: 0 8px;
+  width: calc(100% - 16px) !important;
+  border-radius: 12px !important;
+  border-bottom: none !important;
+}
+
+/* BUBBLE UTILITIES REFINED */
+.message-bubble {
+  position: relative;
+  display: block; 
+  width: fit-content;
+  max-width: 85%; /* Default for mobile */
+  box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+  word-break: break-word;
+  overflow-wrap: anywhere; /* Breaks long URLs naturally */
+  padding: 6px 7px 8px 9px;
+  min-width: 0; /* Prevents flex children from overflowing */
+}
+
+@media (min-width: 768px) {
+  .message-bubble {
+    max-width: 70%; /* Restrict desktop width */
+  }
+}
+
+/* Modern Tail Implementation (Smaller, subtle) */
+.bubble-tail-in::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: -8px;
+  width: 12px;
+  height: 14px;
+  background-color: var(--wa-incoming);
+  clip-path: polygon(100% 0, 0 0, 100% 100%);
+  z-index: 5;
+}
+
+.bubble-tail-out::after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 0;
+  right: -8px;
+  width: 12px;
+  height: 14px;
+  background-color: var(--wa-outgoing);
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+  z-index: 5;
+}
+
+/* Grouping Spacing */
+.message-row {
+  display: flex;
+  width: 100%;
+  margin-bottom: 2px;
+}
+
+p {
+  margin: 0;
+}
