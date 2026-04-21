@@ -23,11 +23,14 @@ export const MessageInput = ({ onSend, onSendFile, disabled, replyingTo, cancelR
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // PERBAIKAN LOGIKA: Sertakan ID pesan yang dibalas saat mengirim
   const handleSubmit = (e) => {
     e.preventDefault();
     if (message.trim() && !disabled) {
-      onSend(message);
+      // Kirim pesan + ID pesan yang dibalas (jika ada)
+      onSend(message, replyingTo?.id?._serialized || replyingTo?.id);
       setMessage('');
+      if (cancelReply) cancelReply(); // Tutup preview balasan otomatis setelah kirim
     }
   };
 
@@ -41,13 +44,13 @@ export const MessageInput = ({ onSend, onSendFile, disabled, replyingTo, cancelR
     setSelectedFile(file);
     setShowAttach(false);
 
+    const sizeStr = formatSize(file.size);
     if (file.type.startsWith('image/')) {
-      const url = URL.createObjectURL(file);
-      setFilePreview({ type: 'image', url, name: file.name, size: formatSize(file.size) });
+      setFilePreview({ type: 'image', url: URL.createObjectURL(file), name: file.name, size: sizeStr });
     } else if (file.type.startsWith('video/')) {
-      setFilePreview({ type: 'video', url: URL.createObjectURL(file), name: file.name, size: formatSize(file.size) });
+      setFilePreview({ type: 'video', url: URL.createObjectURL(file), name: file.name, size: sizeStr });
     } else {
-      setFilePreview({ type: 'document', name: file.name, size: formatSize(file.size) });
+      setFilePreview({ type: 'document', name: file.name, size: sizeStr });
     }
   };
 
@@ -55,10 +58,12 @@ export const MessageInput = ({ onSend, onSendFile, disabled, replyingTo, cancelR
     if (!selectedFile || sending) return;
     setSending(true);
     try {
-      await onSendFile(selectedFile, message);
+      // PERBAIKAN: Sertakan ID pesan yang dibalas saat kirim file
+      await onSendFile(selectedFile, message, replyingTo?.id?._serialized || replyingTo?.id);
       setSelectedFile(null);
       setFilePreview(null);
       setMessage('');
+      if (cancelReply) cancelReply();
     } catch (err) {
       console.error("Error sending file:", err);
     } finally {
@@ -80,35 +85,27 @@ export const MessageInput = ({ onSend, onSendFile, disabled, replyingTo, cancelR
 
   const getFileIcon = (name) => {
     const ext = name?.split('.').pop()?.toLowerCase();
-    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(ext)) return <ImageIcon size={32} className="text-[#00a884]" />;
-    if (['mp4', 'avi', 'mov', 'mkv', 'webm'].includes(ext)) return <Film size={32} className="text-[#53bdeb]" />;
     if (['pdf'].includes(ext)) return <FileText size={32} className="text-[#ff6b6b]" />;
     return <FileIcon size={32} className="text-[#8696a0]" />;
   };
 
-  const fileAccept = "*/*";
-
   return (
-    // DI SINI PERUBAHANNYA: bg-[#202c33] diubah jadi bg-transparent
     <div className="flex flex-col w-full bg-transparent relative pt-2">
       
-      {/* FLOATING PREVIEW AREA (REPLY & FILES) */}
+      {/* FLOATING PREVIEW AREA */}
       <div className="px-3 md:px-5 flex flex-col gap-2">
-        {/* REPLY PREVIEW */}
+        {/* REPLY PREVIEW - Tampilan pesan yang sedang dibalas */}
         {replyingTo && (
-          <div className="bg-[#2a3942] border-l-4 border-[#00a884] px-4 py-2.5 rounded-xl flex items-start justify-between gap-4 shadow-sm animate-in slide-in-from-bottom-2 duration-200">
+          <div className="bg-wa-input-bg border-l-4 border-wa-green px-4 py-2.5 rounded-xl flex items-start justify-between gap-4 shadow-sm animate-in slide-in-from-bottom-2 duration-200">
             <div className="flex-1 min-w-0">
-              <p className="text-[#00a884] text-[13.5px] font-semibold mb-0.5 truncate">
-                {replyingTo.fromMe ? 'Anda' : (replyingTo.author || replyingTo.from || 'Seseorang')}
+              <p className="text-wa-green text-[13.5px] font-semibold mb-0.5 truncate">
+                {replyingTo.fromMe ? 'Anda' : (replyingTo.pushname || replyingTo.from || 'Seseorang')}
               </p>
-              <p className="text-[#8696a0] text-[13px] truncate flex items-center gap-1.5">
-                {(replyingTo.type === 'image' || (replyingTo.mimetype && replyingTo.mimetype.includes('image'))) && <ImageIcon size={14} />}
-                {(replyingTo.type === 'video' || (replyingTo.mimetype && replyingTo.mimetype.includes('video'))) && <Film size={14} />}
-                {replyingTo.type === 'document' && <FileText size={14} />}
-                {replyingTo.body || replyingTo.text || replyingTo.content || (replyingTo.caption && replyingTo.caption) || 'Media'}
+              <p className="text-wa-secondary text-[13px] truncate flex items-center gap-1.5">
+                {replyingTo.body || replyingTo.text || 'Media'}
               </p>
             </div>
-            <button onClick={cancelReply} className="text-[#8696a0] hover:text-[#e9edef] p-1.5 hover:bg-white/10 rounded-full transition-colors shrink-0 mt-0.5">
+            <button onClick={cancelReply} className="text-wa-secondary hover:text-wa-text p-1.5 hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors shrink-0 mt-0.5">
               <X size={18} />
             </button>
           </div>
@@ -116,8 +113,8 @@ export const MessageInput = ({ onSend, onSendFile, disabled, replyingTo, cancelR
 
         {/* FILE PREVIEW */}
         {filePreview && (
-          <div className="bg-[#2a3942] rounded-xl px-4 py-3 flex items-center gap-4 shadow-sm border border-white/5 animate-in slide-in-from-bottom-2 duration-200">
-            <div className="w-[50px] h-[50px] rounded-lg overflow-hidden bg-[#1f2c33] flex items-center justify-center shrink-0 shadow-inner">
+          <div className="bg-wa-input-bg rounded-xl px-4 py-3 flex items-center gap-4 shadow-sm border border-wa-border animate-in slide-in-from-bottom-2 duration-200 transition-colors">
+            <div className="w-[50px] h-[50px] rounded-lg overflow-hidden bg-wa-panel flex items-center justify-center shrink-0 shadow-inner">
               {filePreview.type === 'image' ? (
                 <img src={filePreview.url} alt="preview" className="w-full h-full object-cover" />
               ) : filePreview.type === 'video' ? (
@@ -127,104 +124,115 @@ export const MessageInput = ({ onSend, onSendFile, disabled, replyingTo, cancelR
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[#e9edef] text-[14.5px] truncate font-medium">{filePreview.name}</p>
-              <p className="text-[#8696a0] text-[12.5px] mt-0.5 font-medium">{filePreview.size}</p>
+              <p className="text-wa-text text-[14.5px] truncate font-medium">{filePreview.name}</p>
+              <p className="text-wa-secondary text-[12.5px] mt-0.5 font-medium">{filePreview.size}</p>
             </div>
-            <button onClick={cancelFile} className="text-[#8696a0] hover:text-[#ff6b6b] p-2 hover:bg-white/5 rounded-full transition-colors">
+            <button onClick={cancelFile} className="text-wa-secondary hover:text-[#ff6b6b] p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors">
               <X size={22} />
             </button>
           </div>
         )}
       </div>
 
-      {/* MAIN INPUT AREA */}
-      <form
-        onSubmit={selectedFile ? (e) => { e.preventDefault(); handleSendFile(); } : handleSubmit}
-        className="px-4 py-3 bg-transparent flex items-center gap-3 shrink-0 w-full z-20"
-      >
-        <input ref={fileInputRef} type="file" accept={fileAccept} onChange={handleFileSelect} className="hidden" />
+      {/* CONTAINER INPUT UTAMA */}
+      <div className="bg-wa-panel border-t border-wa-border shrink-0 z-30 transition-colors duration-300">
+        <form
+          onSubmit={selectedFile ? (e) => { e.preventDefault(); handleSendFile(); } : handleSubmit}
+          className="flex items-end gap-3 w-full max-w-[1400px] mx-auto"
+          style={{ paddingLeft: '16px', paddingRight: '24px', paddingTop: '10px', paddingBottom: '12px' }}
+        >
+          <input ref={fileInputRef} type="file" accept="*/*" onChange={handleFileSelect} className="hidden" />
 
-        {/* THE PILL: Combined Input & Tools */}
-        <div className="flex-1 bg-[#2a3942] rounded-[24px] flex items-center h-[44px] px-2 shadow-sm transition-all focus-within:bg-[#2c3c45]">
-          
-          {/* Left Tools (Emoji & Attach) inside the pill */}
-          <div className="flex items-center text-[#8696a0] shrink-0 h-full">
-            {/* EMOJI BUTTON */}
-            <div ref={emojiRef} className="relative flex items-center justify-center h-full">
-              <button
-                type="button"
-                onClick={() => { setShowEmoji(!showEmoji); setShowAttach(false); }}
-                className={`w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors ${showEmoji ? 'text-[#00a884]' : ''}`}
-              >
-                <Smile size={24} strokeWidth={1.5} />
-              </button>
-              {showEmoji && (
-                <div className="absolute bottom-12 left-0 z-50 shadow-2xl rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-white/10">
-                  <EmojiPicker theme={Theme.DARK} onEmojiClick={onEmojiClick} width={320} height={400} searchPlaceholder="Cari emoji..." previewConfig={{ showPreview: false }} skinTonesDisabled lazyLoadEmojis />
-                </div>
-              )}
+          <div 
+            className="flex-1 bg-wa-input-bg rounded-[24px] flex items-center min-h-[44px] shadow-sm transition-all focus-within:bg-wa-input-focus border border-transparent focus-within:border-wa-green/20"
+            style={{ paddingLeft: '8px', paddingRight: '12px' }}
+          >
+            <div className="flex items-center text-wa-secondary shrink-0">
+              <div ref={emojiRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => { setShowEmoji(!showEmoji); setShowAttach(false); }}
+                  className={`w-10 h-10 flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors ${showEmoji ? 'text-wa-green' : ''}`}
+                >
+                  <Smile size={24} strokeWidth={1.5} />
+                </button>
+                {showEmoji && (
+                  <div className="absolute bottom-14 left-0 z-50 shadow-2xl rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-wa-border">
+                    <EmojiPicker theme={Theme.DARK} onEmojiClick={onEmojiClick} width={320} height={400} searchPlaceholder="Cari emoji..." previewConfig={{ showPreview: false }} skinTonesDisabled />
+                  </div>
+                )}
+              </div>
+
+              <div ref={attachRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => { setShowAttach(!showAttach); setShowEmoji(false); }}
+                  className={`w-10 h-10 flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-all duration-300 ${showAttach ? 'text-wa-text bg-black/5 dark:bg-white/10 rotate-45' : ''}`}
+                >
+                  <Plus size={26} strokeWidth={1.5} />
+                </button>
+                
+                {showAttach && (
+                  <div 
+                    className="absolute bottom-14 left-0 z-50 bg-wa-panel rounded-2xl shadow-2xl border border-wa-border animate-in slide-in-from-bottom-2 duration-200"
+                    style={{ width: '220px', padding: '8px' }}
+                  >
+                    {[
+                      { icon: <ImageIcon size={20} />, label: 'Foto', color: 'from-blue-500 to-blue-600', type: 'image/*' },
+                      { icon: <Film size={20} />, label: 'Video', color: 'from-pink-500 to-pink-600', type: 'video/*' },
+                      { icon: <FileText size={20} />, label: 'Dokumen', color: 'from-indigo-500 to-indigo-600', type: '*/*' }
+                    ].map((item, i) => (
+                      <button 
+                        key={i}
+                        type="button" 
+                        onClick={() => { fileInputRef.current.accept = item.type; fileInputRef.current.click(); setShowAttach(false); }} 
+                        className="flex items-center gap-4 w-full p-3 hover:bg-wa-hover rounded-xl transition-colors group text-left"
+                      >
+                        <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${item.color} flex items-center justify-center shadow-md group-hover:scale-105 transition-transform`}>
+                          <span className="text-white">{item.icon}</span>
+                        </div>
+                        <span className="text-wa-text text-[15px] font-medium">{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* ATTACH BUTTON */}
-            <div ref={attachRef} className="relative flex items-center justify-center h-full">
-              <button
-                type="button"
-                onClick={() => { setShowAttach(!showAttach); setShowEmoji(false); }}
-                className={`w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-all duration-300 ${showAttach ? 'text-[#e9edef] bg-white/10 rotate-45' : ''}`}
-              >
-                <Plus size={26} strokeWidth={1.5} />
-              </button>
-              {showAttach && (
-                <div className="absolute bottom-14 left-0 z-50 bg-[#233138] rounded-2xl shadow-2xl py-3 w-[220px] border border-white/10 animate-in slide-in-from-bottom-2 duration-200">
-                  <button type="button" onClick={() => { fileInputRef.current.accept = 'image/*'; fileInputRef.current.click(); }} className="flex items-center gap-4 w-full px-5 py-3 hover:bg-white/5 transition-colors text-left group">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00a884] to-[#007bfc] flex items-center justify-center shadow-md group-hover:scale-105 transition-transform"><ImageIcon size={20} className="text-white" /></div>
-                    <span className="text-[#e9edef] text-[15px] font-medium">Foto</span>
-                  </button>
-                  <button type="button" onClick={() => { fileInputRef.current.accept = 'video/*'; fileInputRef.current.click(); }} className="flex items-center gap-4 w-full px-5 py-3 hover:bg-white/5 transition-colors text-left group">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#ff5252] to-[#ff7eb3] flex items-center justify-center shadow-md group-hover:scale-105 transition-transform"><Film size={20} className="text-white" /></div>
-                    <span className="text-[#e9edef] text-[15px] font-medium">Video</span>
-                  </button>
-                  <button type="button" onClick={() => { fileInputRef.current.accept = '*/*'; fileInputRef.current.click(); }} className="flex items-center gap-4 w-full px-5 py-3 hover:bg-white/5 transition-colors text-left group">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7c5ce7] to-[#a29bfe] flex items-center justify-center shadow-md group-hover:scale-105 transition-transform"><FileText size={20} className="text-white" /></div>
-                    <span className="text-[#e9edef] text-[15px] font-medium">Dokumen</span>
-                  </button>
-                </div>
-              )}
+            <div className="flex-1 h-full py-2">
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                disabled={disabled}
+                placeholder={selectedFile ? "Tambahkan caption..." : "Ketik pesan..."}
+                autoComplete="off"
+                className="w-full bg-transparent border-none outline-none text-wa-text placeholder:text-wa-secondary text-[15px] leading-normal"
+                style={{ paddingLeft: '8px', paddingRight: '8px' }}
+              />
             </div>
           </div>
 
-          {/* TEXT INPUT */}
-          <input
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            disabled={disabled}
-            placeholder={selectedFile ? "Tambahkan caption..." : "Ketik pesan..."}
-            autoComplete="off"
-            className="flex-1 bg-transparent h-full text-[#e9edef] px-2 outline-none placeholder:text-[#8696a0] text-[15px] leading-normal"
-          />
-        </div>
-
-        {/* BIG ACTION BUTTON (Send/Mic) */}
-        <div className="shrink-0">
-          {(message.trim() || selectedFile) ? (
-            <button
-              type="submit"
-              disabled={disabled || sending}
-              className={`w-[44px] h-[44px] rounded-full bg-[#00a884] text-[#111b21] hover:bg-[#00c298] flex items-center justify-center shadow-md transition-all ${sending ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'}`}
-            >
-              <Send size={20} strokeWidth={2.5} className="ml-1" />
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="w-[44px] h-[44px] rounded-full bg-[#00a884] text-[#111b21] hover:bg-[#00c298] flex items-center justify-center shadow-md transition-all hover:scale-105 active:scale-95"
-            >
-              <Mic size={22} strokeWidth={2.5} />
-            </button>
-          )}
-        </div>
-      </form>
+          <div className="shrink-0 mb-[1px]">
+            {(message.trim() || selectedFile) ? (
+              <button
+                type="submit"
+                disabled={disabled || sending}
+                className={`w-[46px] h-[46px] rounded-full bg-wa-green text-white flex items-center justify-center shadow-lg transition-all ${sending ? 'opacity-50' : 'hover:scale-105 active:scale-95 hover:brightness-110'}`}
+              >
+                <Send size={20} strokeWidth={2.5} style={{ marginLeft: '3px' }} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="w-[46px] h-[46px] rounded-full bg-wa-green text-white flex items-center justify-center shadow-lg transition-all hover:scale-105 active:scale-95"
+              >
+                <Mic size={22} strokeWidth={2.5} />
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

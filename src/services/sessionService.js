@@ -66,5 +66,13 @@ export const SessionService = {
 
   getSessionToken(sessionName) {
     return localStorage.getItem(`wpp_token_${sessionName}`);
+  },
+
+  async deleteSession(sessionName) {
+    const { data } = await axiosInstance.post(`/${sessionName}/${SECRET_KEY}/clear-session-data`);
+    if (data.success || data.status) {
+      localStorage.removeItem(`wpp_token_${sessionName}`);
+    }
+    return data;
   }
 };

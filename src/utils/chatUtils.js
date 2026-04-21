@@ -15,74 +15,81 @@ export const getChatId = (chat) => {
 export const getChatName = (chat) => {
   if (!chat) return 'Unknown';
   
-  // 1. Cek properti nama standar (Pastikan itu string, bukan object Wid)
-  if (chat.name && typeof chat.name === 'string') return chat.name;
-  if (chat.pushname && typeof chat.pushname === 'string') return chat.pushname;
-  
-  // 2. Cek apakah namanya ada di dalam object 'contact'
-  if (chat.contact?.name && typeof chat.contact.name === 'string') return chat.contact.name;
-  if (chat.contact?.pushname && typeof chat.contact.pushname === 'string') return chat.contact.pushname;
+  // 1. Identifikasi ID dasar
+  const idUser = chat.id?.user || (typeof chat.id === 'string' ? chat.id.split('@')[0] : '');
+  const isGroup = chat.isGroup || chat.id?._serialized?.includes('@g.us') || (typeof chat.id === 'string' && chat.id.includes('@g.us'));
 
-  // 3. Jika tidak ada nama sama sekali, tampilkan nomor teleponnya!
-  const idString = getChatId(chat);
-  if (idString && idString.includes('@')) {
-    // Memecah "628123456789@c.us" menjadi "628123456789"
-    return '+' + idString.split('@')[0];
-  }
-  
-  // 4. Fallback terakhir jika datanya benar-benar kosong
-  return 'Kontak Baru';
-};
+  // 2. Daftar kandidat nama (Urutan prioritas)
+  const candidates = [
+    chat.name,
+    chat.pushname,
+    chat.formattedTitle,
+    chat.contact?.name,
+    chat.contact?.pushname,
+    chat.contact?.formattedName,
+    chat.contact?.shortName,
+    chat.title
+  ];
 
-// Helper pintar untuk membaca pesan terakhir beserta jenis medianya
-export const getLastMessageText = (chat) => {
-  if (!chat) return 'Belum ada pesan';
-
-  // 1. Cari objek pesan terakhir (Logika kamu sudah bagus, kita rapikan sedikit)
-  let msg = chat.lastMessage || chat.lastMsg;
-  
-  if (!msg && chat.msgs) {
-    if (Array.isArray(chat.msgs) && chat.msgs.length > 0) {
-      msg = chat.msgs[chat.msgs.length - 1];
-    } else if (typeof chat.msgs === 'object') {
-      const models = chat.msgs._models || chat.msgs.models || [];
-      if (models.length > 0) msg = models[models.length - 1];
+  for (const cand of candidates) {
+    if (cand && typeof cand === 'string' && cand.trim() !== "") {
+      // Jika kandidat mengandung huruf, kemungkinan besar itu nama asli
+      if (/[a-zA-Z]/.test(cand)) return cand;
+      
+      // Jika bukan nomor HP yang sama persis dengan ID, ambil saja
+      if (cand !== idUser && !cand.includes('@')) return cand;
     }
   }
 
-  // 2. Jika tetap tidak ada objek pesan, kembalikan teks default
+  // 3. Fallback khusus Grup
+  if (isGroup) {
+    return chat.name || chat.formattedTitle || 'Grup WhatsApp';
+  }
+
+  // 4. Fallback Nomor Telepon
+  if (idUser) {
+    return idUser.length > 15 ? 'Kontak Baru' : '+' + idUser;
+  }
+  
+  return 'Kontak Baru';
+};
+
+export const getLastMessageText = (chat) => {
+  if (!chat) return '';
+
+  // 1. Prioritas: Ambil dari objek lastMessage
+  let msg = chat.lastMessage || chat.lastMsg;
+
+  // 2. Fallback: Ambil pesan terakhir dari array msgs jika ada
+  if (!msg && chat.msgs && chat.msgs.length > 0) {
+    msg = chat.msgs[chat.msgs.length - 1];
+  }
+
   if (!msg) return 'Belum ada pesan';
 
-  // 3. LOGIKA EKSTRAKSI TEKS (Penting: Menangani berbagai jenis data)
-  
-  // Jika pesan dihapus (Revoked)
-  if (msg.type === 'revoked' || msg.isRevoked) return '🚫 Pesan ini telah dihapus';
+  // 3. Jika pesan ditarik
+  if (msg.type === 'revoked' || msg.type === 'protocol') return "🚫 Pesan ini telah dihapus";
 
-  // Ambil body/caption
-  const content = msg.body || msg.caption || msg.text || '';
+  // 4. Deteksi Tipe Media & Teks
+  const typeMap = {
+    'image': '📷 Foto',
+    'video': '🎥 Video',
+    'audio': '🎵 Audio',
+    'ptt': '🎤 Pesan Suara',
+    'document': '📄 Dokumen',
+    'sticker': '🎨 Stiker',
+    'location': '📍 Lokasi',
+    'vcard': '👤 Kontak',
+    'call_log': '📞 Panggilan'
+  };
 
-  // Tangani jenis media (WhatsApp style)
-  switch (msg.type) {
-    case 'image':
-      return `📷 ${content || 'Foto'}`;
-    case 'video':
-      return `🎥 ${content || 'Video'}`;
-    case 'audio':
-    case 'ptt':
-      return `🎤 Pesan suara`;
-    case 'document':
-      return `📄 ${msg.filename || 'Dokumen'}`;
-    case 'sticker':
-      return `🏷️ Stiker`;
-    case 'location':
-      return `📍 Lokasi`;
-    case 'vcard':
-    case 'multi_vcard':
-      return `👤 Kontak`;
-    default:
-      // Jika pesan teks biasa
-      return content || 'Pesan media';
+  if (typeMap[msg.type]) {
+    const caption = msg.caption || '';
+    return typeMap[msg.type] + (caption ? ': ' + caption : '');
   }
+
+  // 5. Ekstraksi Konten Teks
+  return msg.body || msg.content || msg.text || 'Pesan Media';
 };
 
 // Generate a stable color based on the chat's unique ID
@@ -95,6 +102,33 @@ export const getAvatarColor = (id) => {
   const stringId = String(id);
   const charSum = stringId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   return colors[charSum % colors.length];
+};
+
+// Fungsi untuk memanggil API avatar
+export const fetchAvatarUrl = async (session, phone, isGroup, token) => {
+  try {
+    // Tambahkan parameter isGroup jika bernilai true
+    const query = isGroup ? '?isGroup=true' : '';
+    const url = `/api/${session}/profile-pic/${phone}${query}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`, // Masukkan token kamu di sini
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) throw new Error('Gagal fetch avatar');
+    
+    // Asumsi backend mengembalikan JSON berisi URL gambar (sesuaikan dengan respon backendmu)
+    const data = await response.json(); 
+    return data.profilePicUrl; // Ganti .profilePicUrl sesuai key JSON dari backend kamu
+
+  } catch (error) {
+    console.error("Error fetching avatar:", error);
+    return null; // Kembalikan null jika gagal
+  }
 };
 
 // Helper untuk format status "Terakhir Dilihat" (Last Seen)

@@ -27,12 +27,32 @@ class SocketService {
       console.log('Socket disconnected');
     });
 
-    // Universal message handler
+    // Universal message handler with optimization
     this.socket.onAny((eventName, ...args) => {
-      console.log(`Socket Event [${eventName}]:`, args);
-      const eventCallbacks = this.callbacks.get(eventName) || [];
-      eventCallbacks.forEach(callback => callback(...args));
+      // Data Thinning & Throttling
+      if (eventName === 'onpresencechanged' || eventName === 'typing') {
+        this.throttleEvent(eventName, args);
+      } else {
+        this.executeCallbacks(eventName, args);
+      }
     });
+  }
+
+  // Throttle helper to avoid UI lag on high-frequency events
+  throttleEvent(eventName, args) {
+    const now = Date.now();
+    const lastRun = this.lastRunTime?.get(eventName) || 0;
+    
+    if (now - lastRun > 1000) { // Max 1 update per second for status
+      if (!this.lastRunTime) this.lastRunTime = new Map();
+      this.lastRunTime.set(eventName, now);
+      this.executeCallbacks(eventName, args);
+    }
+  }
+
+  executeCallbacks(eventName, args) {
+    const eventCallbacks = this.callbacks.get(eventName) || [];
+    eventCallbacks.forEach(callback => callback(...args));
   }
 
   disconnect() {
@@ -48,7 +68,6 @@ class SocketService {
     }
     this.callbacks.get(event).push(callback);
     
-    // Return cleanup function
     return () => {
       const callbacks = this.callbacks.get(event);
       if (callbacks) {
@@ -60,6 +79,14 @@ class SocketService {
   emit(event, data) {
     if (this.socket) {
       this.socket.emit(event, data);
+    }
+  }
+
+  // Heartbeat - Check if socket is still alive
+  checkHeartbeat() {
+    if (this.socket && !this.socket.connected) {
+      console.log("Socket connection lost, reconnecting...");
+      this.socket.connect();
     }
   }
 }

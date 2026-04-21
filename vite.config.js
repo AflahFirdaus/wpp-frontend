@@ -5,15 +5,56 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: '0.0.0.0', // Memaksa vite mendengarkan semua interface jaringan
+    // 1. Membuka akses agar bisa diakses via IP di jaringan
+    host: '0.0.0.0', 
     port: 5173,
-    strictPort: true, // Memastikan tidak pindah port kalau 5173 dipakai
+    strictPort: true, 
+    
     proxy: {
       '/api': {
-        target: 'http://localhost:21465',
+        // 2. Gunakan 127.0.0.1 daripada localhost agar lebih stabil saat akses via IP
+        target: 'http://127.0.0.1:21465', 
         changeOrigin: true,
         secure: false,
+        // 3. Tambahkan rewrite jika backend kamu tidak mengharapkan prefix /api
+        // rewrite: (path) => path.replace(/^\/api/, ''), 
+        
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('Proxy Error:', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            // Log ini membantu kamu melihat apakah request beneran lewat proxy
+            // console.log('Sending Request to the Target:', req.method, req.url);
+          });
+        },
       }
     }
   }
 })
+
+// // vite.config.js
+// import { defineConfig } from 'vite'
+// import react from '@vitejs/plugin-react'
+
+// export default defineConfig({
+//   plugins: [react()],
+//   server: {
+//     // Biarkan kosong atau hapus properti host agar default ke localhost
+//     proxy: {
+//       '/api': {
+//         target: 'http://localhost:21465',
+//         changeOrigin: true,
+//         secure: false,
+//         headers: {
+//           Connection: 'keep-alive'
+//         },
+//         configure: (proxy, _options) => {
+//           proxy.on('error', (err, _req, _res) => {
+//             console.log('proxy error', err);
+//           });
+//         },
+//       }
+//     }
+//   }
+// })

@@ -2,6 +2,9 @@ import { useState, useCallback, useEffect } from 'react';
 import { MessageService } from '../services/messageService';
 import { socketService } from '../services/socketService';
 
+const forwardedIds = new Set();
+const quotedMessagesCache = new Map(); // [MsgID] -> QuotedMsgID
+
 export const useMessages = (activeSession, selectedChatId, isGroup = false) => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -15,6 +18,18 @@ export const useMessages = (activeSession, selectedChatId, isGroup = false) => {
 
       // Mengurutkan pesan dari yang terlama ke terbaru untuk tampilan chat
       const sortedMessages = [...messageList].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+      
+      // Re-attach metadata from local cache for persistence
+      sortedMessages.forEach(m => {
+          const idStr = m.id?._serialized || m.id;
+          if (forwardedIds.has(idStr)) m.isForwarded = true;
+          
+          if (!m.quotedMsg && quotedMessagesCache.has(idStr)) {
+              // If server lost the quote, but we remember it, show it on web
+              m.quotedMsg = { id: quotedMessagesCache.get(idStr) };
+          }
+      });
+      
       setMessages(sortedMessages);
     } catch (err) {
       if (err.response?.status === 404) {
@@ -32,32 +47,85 @@ export const useMessages = (activeSession, selectedChatId, isGroup = false) => {
   useEffect(() => {
     if (!activeSession || !selectedChatId) return;
 
-    const cleanup = socketService.on('received-message', (data) => {
-      const msg = data.response;
+    const handleNewMessage = (payload) => {
+      const session = payload.session;
+      const msg = payload.response || payload.data;
+      
+      if (!msg || session !== activeSession) return;
 
-      // Filter by session and chat ID
+      const msgIdStr = msg.id?._serialized || msg.id;
+      // Broad detection for forwarded status
+      const isForwarded = msg.isForwarded || msg.forwarded || (msg.forwardingScore && msg.forwardingScore > 0);
+      
+      if (msgIdStr && (forwardedIds.has(msgIdStr) || isForwarded)) {
+          msg.isForwarded = true;
+          forwardedIds.add(msgIdStr); // Remember it for this session
+      }
+
       const msgChatId = msg.fromMe ? (msg.to || msg.chatId) : (msg.from || msg.chatId);
+      const isCurrentChat = (msgChatId === selectedChatId || msg.chatId === selectedChatId);
 
-      if (msg.session === activeSession && (msgChatId === selectedChatId || msg.chatId === selectedChatId)) {
-        console.log("New real-time message received:", msg);
+      if (isCurrentChat) {
         setMessages(prev => {
-          // Check if message already exists (to avoid duplicates from mensagem-enviada or re-fetch)
-          const exists = prev.some(m => m.id === msg.id);
-          if (exists) return prev;
-          return [...prev, msg];
+          let index = prev.findIndex(m => (m.id?._serialized || m.id) === msgIdStr);
+          
+          if (index === -1 && msg.fromMe) {
+              index = prev.findIndex(m => m.temp && m.body === msg.body);
+          }
+
+          if (index !== -1) {
+            const updated = [...prev];
+            const existing = updated[index];
+            // MERGE: Keep existing quotedMsg if the new one is missing
+            const mergedMsg = { ...existing, ...msg, temp: false };
+            if (!mergedMsg.quotedMsg && existing.quotedMsg) mergedMsg.quotedMsg = existing.quotedMsg;
+            if (!mergedMsg.quotedMsg && quotedMessagesCache.has(msgIdStr)) {
+                mergedMsg.quotedMsg = { id: quotedMessagesCache.get(msgIdStr) };
+            }
+            
+            updated[index] = mergedMsg;
+            return updated;
+          }
+
+          if (!msg.quotedMsg && quotedMessagesCache.has(msgIdStr)) {
+              msg.quotedMsg = { id: quotedMessagesCache.get(msgIdStr) };
+          }
+
+          const newMessages = [...prev, { ...msg, temp: false }];
+          return newMessages.sort((a, b) => (a.timestamp || a.t || 0) - (b.timestamp || b.t || 0));
         });
       }
-    });
+    };
+
+    const cleanup = socketService.on('received-message', handleNewMessage);
+    const cleanupOnMsg = socketService.on('onmessage', handleNewMessage);
 
     const cleanupSent = socketService.on('mensagem-enviada', (data) => {
-      // data is often an array or single object from the controller
       const results = Array.isArray(data) ? data : [data];
       results.forEach(msg => {
+        const msgIdStr = msg.id?._serialized || msg.id;
+        const isForwarded = msg.isForwarded || msg.forwarded || (msg.forwardingScore && msg.forwardingScore > 0);
+
+        if (msgIdStr && (forwardedIds.has(msgIdStr) || isForwarded)) {
+            msg.isForwarded = true;
+            forwardedIds.add(msgIdStr);
+        }
+          
         if (msg.session === activeSession && (msg.to === selectedChatId || msg.chatId === selectedChatId)) {
           setMessages(prev => {
-            const exists = prev.some(m => m.id === msg.id);
-            if (exists) return prev;
-            return [...prev, msg];
+            let index = prev.findIndex(m => (m.id?._serialized || m.id) === msgIdStr);
+            
+            // Optimistic matching for sent messages
+            if (index === -1) {
+                index = prev.findIndex(m => m.temp && m.body === msg.body);
+            }
+
+            if (index !== -1) {
+              const updated = [...prev];
+              updated[index] = { ...updated[index], ...msg, temp: false };
+              return updated;
+            }
+            return [...prev, { ...msg, temp: false }].sort((a, b) => (a.timestamp || a.t || 0) - (b.timestamp || b.t || 0));
           });
         }
       });
@@ -65,16 +133,41 @@ export const useMessages = (activeSession, selectedChatId, isGroup = false) => {
 
     return () => {
       cleanup();
+      cleanupOnMsg();
       cleanupSent();
     };
   }, [activeSession, selectedChatId]);
 
   const sendMessage = async (text, replyMessageId = null) => {
     if (!activeSession || !selectedChatId || !text) return;
+    
+    // OPTIMISTIC UPDATE: Add message to UI immediately to fix "delay" perception
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMsg = {
+        id: tempId,
+        body: text,
+        fromMe: true,
+        timestamp: Math.floor(Date.now() / 1000),
+        ack: 0,
+        temp: true,
+        quotedMsg: replyMessageId ? { id: replyMessageId } : null // Simulasikan quote di UI
+    };
+    
+    setMessages(prev => [...prev, optimisticMsg]);
+
     try {
       const res = await MessageService.sendMessage(activeSession, selectedChatId, text, isGroup, replyMessageId);
+      
+      if (res && res.id) {
+          const idStr = res.id?._serialized || res.id;
+          if (replyMessageId) quotedMessagesCache.set(idStr, replyMessageId);
+          
+          setMessages(prev => prev.map(m => m.id === tempId ? { ...m, ...res, temp: false } : m));
+      }
       return res;
     } catch (err) {
+      // Remove optimistic message on error
+      setMessages(prev => prev.filter(m => m.id !== tempId));
       console.error("Error sending message:", err);
       throw err;
     }
@@ -91,11 +184,16 @@ export const useMessages = (activeSession, selectedChatId, isGroup = false) => {
     }
   };
 
-  const forwardMsg = async (messageId, targetPhone) => {
+  const forwardMsg = async (messageId, targetPhone, fallbackObj = null) => {
     if (!activeSession || !messageId || !targetPhone) return;
     try {
-      // isGroup di-set manual atau dari chat utils jika diperlukan
-      const res = await MessageService.forwardMessage(activeSession, targetPhone, messageId, targetPhone.includes('@g.us'));
+      const res = await MessageService.forwardMessage(activeSession, targetPhone, messageId, targetPhone.includes('@g.us'), fallbackObj);
+      
+      if (res && res.id) {
+          const idStr = typeof res.id === 'string' ? res.id : res.id?._serialized;
+          if (idStr) forwardedIds.add(idStr);
+      }
+      
       return res;
     } catch (err) {
       const serverMsg = err.response?.data?.response?.message || err.response?.data?.message || err.message;

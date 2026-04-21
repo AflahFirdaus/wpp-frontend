@@ -34,8 +34,10 @@ export const usePresence = (activeSession, selectedChatId, isGroup = false) => {
 
   // 2. Initial Fetch & Subscription
   useEffect(() => {
-    if (!activeSession || !selectedChatId || isGroup) {
-      setPresence(isGroup ? 'klik untuk info grup' : '');
+    const isActuallyGroup = isGroup || (selectedChatId && (selectedChatId.endsWith('@g.us') || selectedChatId.endsWith('@newsletter')));
+    
+    if (!activeSession || !selectedChatId || isActuallyGroup) {
+      setPresence(isActuallyGroup ? (selectedChatId?.endsWith('@newsletter') ? 'channel' : 'klik untuk info grup') : '');
       setIsOnline(false);
       return;
     }

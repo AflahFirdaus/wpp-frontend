@@ -4,8 +4,8 @@ import { SessionService } from './sessionService';
 export const ChatService = {
   async getAllChats(session) {
     const token = SessionService.getSessionToken(session);
-    // Menggunakan /all-chats (GET) sebagai alternatif paling dasar dan lengkap
-    const { data } = await axiosInstance.get(`/${session}/all-chats`, {
+    // Menggunakan all-chats-with-messages (GET) untuk mendapatkan msgs/lastMessage
+    const { data } = await axiosInstance.get(`/${session}/all-chats-with-messages`, {
       sessionToken: token
     });
     return data.response || data;
@@ -48,7 +48,7 @@ export const ChatService = {
   async getContactDetail(session, phone) {
     const token = SessionService.getSessionToken(session);
     // Membersihkan ID jika ada @c.us untuk mendapatkan nomor murni
-    const cleanPhone = phone.split('@')[0];
+    const cleanPhone = (phone.includes('@g.us') || phone.includes('@newsletter')) ? phone : phone.split('@')[0];
     const { data } = await axiosInstance.get(`/${session}/contact/${cleanPhone}`, {
       sessionToken: token
     });
@@ -77,7 +77,7 @@ export const ChatService = {
 
   async getLastSeen(session, phone) {
     const token = SessionService.getSessionToken(session);
-    const cleanPhone = phone.split('@')[0];
+    const cleanPhone = (phone.includes('@g.us') || phone.includes('@newsletter')) ? phone : phone.split('@')[0];
     try {
       const { data } = await axiosInstance.get(`/${session}/last-seen/${cleanPhone}`, {
         sessionToken: token
@@ -91,7 +91,7 @@ export const ChatService = {
 
   async subscribePresence(session, phone, isGroup = false) {
     const token = SessionService.getSessionToken(session);
-    const cleanPhone = phone.split('@')[0];
+    const cleanPhone = (phone.includes('@g.us') || phone.includes('@newsletter')) ? phone : phone.split('@')[0];
     try {
       const { data } = await axiosInstance.post(`/${session}/subscribe-presence`, {
         phone: cleanPhone,

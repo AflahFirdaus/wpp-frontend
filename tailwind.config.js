@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class', // <--- Wajib untuk toggle mode gelap/terang manual
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -7,15 +8,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        'wa-bg': '#111b21',
-        'wa-panel': '#202c33',
-        'wa-green': '#00a884',
-        'wa-incoming': '#202c33',
-        'wa-outgoing': '#005c4b',
-        'wa-text': '#e9edef',
-        'wa-secondary': '#8696a0',
-        'wa-chat-bg': '#0b141a',
-        'wa-border': '#222d34'
+        'wa-bg': 'var(--wa-bg)',
+        'wa-panel': 'var(--wa-panel)',
+        'wa-green': 'var(--wa-green)',
+        'wa-incoming': 'var(--wa-incoming)',
+        'wa-outgoing': 'var(--wa-outgoing)',
+        'wa-text': 'var(--wa-text)',
+        'wa-secondary': 'var(--wa-secondary)',
+        'wa-chat-bg': 'var(--wa-chat-bg)',
+        'wa-border': 'var(--wa-border)',
+        'wa-input-bg': 'var(--wa-input-bg)',
+        'wa-input-focus': 'var(--wa-input-focus)',
+        'wa-quoted-bg': 'var(--wa-quoted-bg)',
+        'wa-hover': 'var(--wa-hover)'
       }
     },
   },
