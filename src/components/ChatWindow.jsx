@@ -31,6 +31,44 @@ const getMsgId = (msg) => {
     return typeof id === 'object' ? (id?._serialized || id?.id) : id;
 };
 
+const formatWhatsAppText = (text, searchQuery) => {
+  if (!text) return null;
+  if (typeof text !== 'string') return text;
+
+  const highlight = (str) => {
+    if (!searchQuery) return str;
+    const parts = str.split(new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+    return parts.map((part, i) =>
+      part.toLowerCase() === searchQuery.toLowerCase()
+        ? <span key={`h-${i}`} className="bg-[#00a884]/40 text-white rounded-[2px] px-0.5">{part}</span>
+        : part
+    );
+  };
+
+  const rules = [
+    { regex: /```([\s\S]*?)```/g, render: (content, i) => <span key={`m-${i}`} className="font-mono bg-black/5 dark:bg-white/10 px-1 py-0.5 rounded text-[13px]">{content}</span> },
+    { regex: /\*([^\n*]+)\*/g, render: (content, i) => <strong key={`b-${i}`} className="font-bold">{content}</strong> },
+    { regex: /_([^\n_]+)_/g, render: (content, i) => <em key={`i-${i}`} className="italic">{content}</em> },
+    { regex: /~([^\n~]+)~/g, render: (content, i) => <s key={`s-${i}`} className="line-through">{content}</s> },
+  ];
+
+  const parse = (str, ruleIndex = 0) => {
+    if (ruleIndex >= rules.length) return highlight(str);
+    const rule = rules[ruleIndex];
+    const parts = str.split(rule.regex);
+    if (parts.length === 1) return parse(str, ruleIndex + 1);
+
+    return parts.map((part, i) => {
+      if (i % 2 === 1) {
+        return rule.render(parse(part, ruleIndex + 1), i);
+      }
+      return parse(part, ruleIndex + 1);
+    });
+  };
+
+  return parse(text);
+};
+
 const QuotedMessage = ({ quotedMsg, isMe, scrollToMessage, messages = [] }) => {
   if (!quotedMsg) return null;
 
@@ -80,7 +118,7 @@ const QuotedMessage = ({ quotedMsg, isMe, scrollToMessage, messages = [] }) => {
             </div>
           )}
           <p className="text-wa-secondary text-[13px] truncate whitespace-nowrap overflow-hidden flex-1 min-w-0">
-            {content}
+            {formatWhatsAppText(content)}
           </p>
         </div>
       </div>
@@ -289,8 +327,6 @@ const MediaRenderer = ({ msg, activeSession, setPreviewMedia }) => {
       </div>
     </div>
   );
-};
-
 export const ChatWindow = ({ messages, chatInfo, chats, onSendMessage, onSendFile, onForwardMessage, loading, activeSession, onRefreshMessages, onCloseChat }) => {
   const scrollRef = useRef(null);
   const { presence } = usePresence(activeSession, getChatId(chatInfo), chatInfo?.isGroup);
@@ -832,16 +868,7 @@ export const ChatWindow = ({ messages, chatInfo, chats, onSendMessage, onSendFil
                         {/* 2. TEXT RENDER (Jika ada) */}
                         {hasText && (
                           <div className={`text-[14.5px] leading-[1.4] whitespace-pre-wrap break-words [overflow-wrap:anywhere] min-w-0 ${renderedMedia ? 'px-2 pt-2' : ''}`}>
-                            {isSearchActive && isMatch ? (() => {
-                              const text = getMessageContent(msg);
-                              const query = searchMsgQuery;
-                              const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
-                              return parts.map((part, i) =>
-                                part.toLowerCase() === query.toLowerCase()
-                                  ? <span key={i} className="bg-[#00a884]/40 text-white rounded-[2px] px-0.5">{part}</span>
-                                  : part
-                              );
-                            })() : getMessageContent(msg)}
+                            {formatWhatsAppText(getMessageContent(msg), isSearchActive && isMatch ? searchMsgQuery : null)}
 
                             {/* SPACER FOR TIMESTAMP */}
                             <span className="inline-block w-16" />
