@@ -327,6 +327,8 @@ const MediaRenderer = ({ msg, activeSession, setPreviewMedia }) => {
       </div>
     </div>
   );
+};
+
 export const ChatWindow = ({ messages, chatInfo, chats, onSendMessage, onSendFile, onForwardMessage, loading, activeSession, onRefreshMessages, onCloseChat }) => {
   const scrollRef = useRef(null);
   const { presence } = usePresence(activeSession, getChatId(chatInfo), chatInfo?.isGroup);
