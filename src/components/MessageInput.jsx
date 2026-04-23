@@ -12,6 +12,26 @@ export const MessageInput = ({ onSend, onSendFile, disabled, replyingTo, cancelR
   const fileInputRef = useRef(null);
   const emojiRef = useRef(null);
   const attachRef = useRef(null);
+  const textareaRef = useRef(null);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = '24px'; // Reset height briefly
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+    }
+  }, [message]);
+
+  // Handle Enter & Shift+Enter
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (message.trim() || selectedFile) {
+        if (selectedFile) handleSendFile();
+        else handleSubmit(e);
+      }
+    }
+  };
 
   // Close popups on outside click
   useEffect(() => {
@@ -199,16 +219,17 @@ export const MessageInput = ({ onSend, onSendFile, disabled, replyingTo, cancelR
               </div>
             </div>
 
-            <div className="flex-1 h-full py-2">
-              <input
-                type="text"
+            <div className="flex-1 h-full py-2 flex items-center">
+              <textarea
+                ref={textareaRef}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={handleKeyDown}
                 disabled={disabled}
                 placeholder={selectedFile ? "Tambahkan caption..." : "Ketik pesan..."}
-                autoComplete="off"
-                className="w-full bg-transparent border-none outline-none text-wa-text placeholder:text-wa-secondary text-[15px] leading-normal"
-                style={{ paddingLeft: '8px', paddingRight: '8px' }}
+                className="w-full bg-transparent border-none outline-none text-wa-text placeholder:text-wa-secondary text-[15px] leading-normal custom-scrollbar resize-none"
+                style={{ paddingLeft: '8px', paddingRight: '8px', minHeight: '24px', maxHeight: '120px' }}
+                rows={1}
               />
             </div>
           </div>
