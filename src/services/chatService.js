@@ -4,8 +4,9 @@ import { SessionService } from './sessionService';
 export const ChatService = {
   async getAllChats(session) {
     const token = SessionService.getSessionToken(session);
-    // Menggunakan all-chats-with-messages (GET) untuk mendapatkan msgs/lastMessage
-    const { data } = await axiosInstance.get(`/${session}/all-chats-with-messages`, {
+    // Menggunakan all-chats (GET) agar performa server tidak lambat
+    // karena all-chats-with-messages menarik semua pesan dari setiap chat yang membuat server kehabisan memory/timeout.
+    const { data } = await axiosInstance.get(`/${session}/all-chats`, {
       sessionToken: token
     });
     return data.response || data;
