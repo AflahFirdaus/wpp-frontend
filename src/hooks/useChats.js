@@ -12,8 +12,26 @@ export const useChats = (activeSession, selectedChatId) => {
   const fetchChats = useCallback(async () => {
     if (!activeSession) return;
     
+    const cacheKey = `wpp_chats_cache_${activeSession}`;
+    
     if (isInitialLoadRef.current) {
-      setLoading(true);
+      // 1. Coba baca dari Local Storage dulu (0 detik loading)
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          const parsedCache = JSON.parse(cached);
+          if (parsedCache && parsedCache.length > 0) {
+            setChats(parsedCache);
+            setLoading(false); // Matikan loading screen segera!
+          } else {
+            setLoading(true);
+          }
+        } catch (e) {
+          setLoading(true);
+        }
+      } else {
+        setLoading(true);
+      }
     }
     
     setError(null);
@@ -52,6 +70,13 @@ export const useChats = (activeSession, selectedChatId) => {
       });
 
       setChats(uniqueChats);
+      
+      // Simpan ke cache untuk sesi berikutnya (maksimal 1000 chat agar tidak melebihi 5MB kuota browser)
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(uniqueChats.slice(0, 1000)));
+      } catch (e) {
+        console.warn("Gagal menyimpan cache (kuota LocalStorage penuh)");
+      }
       
       if (isInitialLoadRef.current) {
         isInitialLoadRef.current = false;
