@@ -20,11 +20,7 @@ const sanitizeId = (id) => {
 export const MessageService = {
   async getMessages(session, chatId, isGroup = false) {
     const token = SessionService.getSessionToken(session);
-    const { data } = await axiosInstance.get(`/${session}/get-messages/${chatId}`, {
-      params: {
-        count: 100,
-        direction: 'before'
-      },
+    const { data } = await axiosInstance.get(`/${session}/get-messages/${chatId}?count=100`, {
       sessionToken: token
     });
     return data.response || data;

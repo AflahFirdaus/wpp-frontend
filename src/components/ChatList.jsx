@@ -72,9 +72,18 @@ const ChatItem = memo(({ chat, isSelected, onSelectChat, activeSession, serializ
 });
 
 export const ChatList = ({ chats, onSelectChat, selectedChatId, activeSession, sessionToken }) => {
+  const [visibleCount, setVisibleCount] = React.useState(30);
+
+  const handleScroll = (e) => {
+    const bottom = e.target.scrollHeight - e.target.scrollTop - e.target.clientHeight < 100;
+    if (bottom && visibleCount < chats.length) {
+      setVisibleCount(prev => Math.min(prev + 30, chats.length));
+    }
+  };
+
   return (
-    <div className="w-full h-full flex-1 overflow-y-auto custom-scrollbar">
-      {chats.map((chat, idx) => {
+    <div className="w-full h-full flex-1 overflow-y-auto custom-scrollbar" onScroll={handleScroll}>
+      {chats.slice(0, visibleCount).map((chat, idx) => {
         const serializedId = getChatId(chat) || `chat-fallback-${idx}`;
         return (
           <ChatItem
