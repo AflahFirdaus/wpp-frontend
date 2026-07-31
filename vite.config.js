@@ -12,7 +12,7 @@ export default defineConfig({
     
     proxy: {
       '/api': {
-        // 2. Gunakan 127.0.0.1 daripada localhost agar lebih stabil saat akses via IP
+        // 2. Gunakan localhost untuk testing lokal (backend di laptop yang sama)
         target: 'http://127.0.0.1:21465', 
         changeOrigin: true,
         secure: false,
