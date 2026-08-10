@@ -12,8 +12,10 @@ export default defineConfig({
     
     proxy: {
       '/api': {
-        // 2. Gunakan localhost untuk testing lokal (backend di laptop yang sama)
-        target: 'http://127.0.0.1:21465', 
+        // 2. Arahkan ke IP PC yang menjalankan wppconnect-server (backend)
+        // WAJIB pakai protokol (http://) supaya tidak salah tafsir jadi port 80.
+        // Backend & frontend beda mesin, jadi harus pakai IP backend, bukan localhost.
+        target: 'http://192.168.1.15:21465', 
         changeOrigin: true,
         secure: false,
         // 3. Tambahkan rewrite jika backend kamu tidak mengharapkan prefix /api

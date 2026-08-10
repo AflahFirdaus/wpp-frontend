@@ -34,7 +34,10 @@ export const ChatAvatar = ({ session, phone, isGroup, displayName, avatarColor, 
         setLoading(true);
         const query = isGroup ? '?isGroup=true' : '';
         const url = `/api/${session}/profile-pic/${phone}${query}`;
-        const backendBase = 'http://localhost:21465';
+        // Photo profile di-fetch langsung dari browser, jadi harus pakai
+        // IP backend yang bisa dijangkau browser (bukan localhost, karena
+        // backend & frontend beda mesin).
+        const backendBase = 'http://192.168.1.15:21465';
         const absoluteUrl = `${backendBase}${url}`;
 
         const response = await fetch(url, {

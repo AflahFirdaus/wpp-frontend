@@ -9,6 +9,42 @@ export const useChats = (activeSession, selectedChatId) => {
   const [error, setError] = useState(null);
   const isInitialLoadRef = useRef(true);
 
+  // Rampingkan data chat untuk disimpan di LocalStorage.
+  // Hanya field yang dipakai ChatList/chatUtils untuk tampilan, agar tidak
+  // melebihi kuota storage (buang array msgs & objek contact yang berat).
+  const sanitizeChatForCache = useCallback((chat) => {
+    const trimMsg = (m) => m ? {
+      id: m.id?._serialized || m.id,
+      type: m.type,
+      body: m.body,
+      content: m.content,
+      text: m.text,
+      caption: m.caption,
+      timestamp: m.timestamp,
+      t: m.t,
+      fromMe: m.fromMe,
+      ack: m.ack,
+      to: m.to,
+      from: m.from
+    } : null;
+
+    const lastMsg = chat.lastMessage
+      || (Array.isArray(chat.msgs) ? chat.msgs[chat.msgs.length - 1] : null);
+
+    return {
+      id: chat.id?._serialized || chat.id,
+      name: chat.name,
+      pushname: chat.pushname,
+      formattedTitle: chat.formattedTitle,
+      title: chat.title,
+      isGroup: chat.isGroup,
+      t: chat.t,
+      timestamp: chat.timestamp,
+      unreadCount: chat.unreadCount,
+      lastMessage: trimMsg(lastMsg)
+    };
+  }, []);
+
   const fetchChats = useCallback(async () => {
     if (!activeSession) return;
     
@@ -71,9 +107,24 @@ export const useChats = (activeSession, selectedChatId) => {
 
       setChats(uniqueChats);
       
-      // Simpan ke cache untuk sesi berikutnya (maksimal 1000 chat agar tidak melebihi 5MB kuota browser)
+      // Simpan cache ramping untuk sesi berikutnya (hanya untuk tampilan awal;
+      // data segar tetap di-fetch dari server).
+      //
+      // B) Batasi jumlah chat yang disimpan ke 150 terbaru saja, supaya hemat
+      //    storage dan tidak melebihi kuota LocalStorage (~5MB per origin, dipakai
+      //    bersama oleh semua sesi).
+      // C) Jika sebuah sesi chatnya sangat banyak (banyak banget), lewati penulisan
+      //    cache sama sekali — menghindari spam "Gagal menyimpan cache" dan beban
+      //    serialisasi JSON yang tidak perlu. Tampilan tidak terpengaruh.
+      const MAX_CACHE_CHATS = 150;
+      const SKIP_CACHE_THRESHOLD = 2000;
       try {
-        localStorage.setItem(cacheKey, JSON.stringify(uniqueChats.slice(0, 1000)));
+        if (uniqueChats.length <= SKIP_CACHE_THRESHOLD) {
+          const slimCache = uniqueChats
+            .slice(0, MAX_CACHE_CHATS)
+            .map(sanitizeChatForCache);
+          localStorage.setItem(cacheKey, JSON.stringify(slimCache));
+        }
       } catch (e) {
         console.warn("Gagal menyimpan cache (kuota LocalStorage penuh)");
       }

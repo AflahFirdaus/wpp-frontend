@@ -1,7 +1,9 @@
-import { io } from "socket.io-client";
+import { io } from 'socket.io-client';
 
-// The backend URL - untuk testing lokal (backend di laptop yang sama)
-const SOCKET_URL = "http://localhost:21465";
+// The backend URL - arahkan ke IP PC yang menjalankan wppconnect-server (backend)
+// Sesuaikan jika backend di IP lain, mis. 'http://192.168.1.15:21465'
+// Sesuaikan jika backend di local, mis. 'http://localhost:21465'
+const SOCKET_URL = 'http://192.168.1.15:21465';
 
 class SocketService {
   constructor() {
@@ -13,23 +15,23 @@ class SocketService {
     if (this.socket?.connected) return;
 
     this.socket = io(SOCKET_URL, {
-      transports: ["websocket"],
+      transports: ['websocket'],
       autoConnect: true,
       reconnection: true,
     });
 
-    this.socket.on("connect", () => {
-      console.log("Socket connected:", this.socket.id);
+    this.socket.on('connect', () => {
+      console.log('Socket connected:', this.socket.id);
     });
 
-    this.socket.on("disconnect", () => {
-      console.log("Socket disconnected");
+    this.socket.on('disconnect', () => {
+      console.log('Socket disconnected');
     });
 
     // Universal message handler with optimization
     this.socket.onAny((eventName, ...args) => {
       // Data Thinning & Throttling
-      if (eventName === "onpresencechanged" || eventName === "typing") {
+      if (eventName === 'onpresencechanged' || eventName === 'typing') {
         this.throttleEvent(eventName, args);
       } else {
         this.executeCallbacks(eventName, args);
@@ -41,9 +43,8 @@ class SocketService {
   throttleEvent(eventName, args) {
     const now = Date.now();
     const lastRun = this.lastRunTime?.get(eventName) || 0;
-
-    if (now - lastRun > 1000) {
-      // Max 1 update per second for status
+    
+    if (now - lastRun > 1000) { // Max 1 update per second for status
       if (!this.lastRunTime) this.lastRunTime = new Map();
       this.lastRunTime.set(eventName, now);
       this.executeCallbacks(eventName, args);
@@ -52,7 +53,7 @@ class SocketService {
 
   executeCallbacks(eventName, args) {
     const eventCallbacks = this.callbacks.get(eventName) || [];
-    eventCallbacks.forEach((callback) => callback(...args));
+    eventCallbacks.forEach(callback => callback(...args));
   }
 
   disconnect() {
@@ -67,14 +68,11 @@ class SocketService {
       this.callbacks.set(event, []);
     }
     this.callbacks.get(event).push(callback);
-
+    
     return () => {
       const callbacks = this.callbacks.get(event);
       if (callbacks) {
-        this.callbacks.set(
-          event,
-          callbacks.filter((cb) => cb !== callback),
-        );
+        this.callbacks.set(event, callbacks.filter(cb => cb !== callback));
       }
     };
   }
