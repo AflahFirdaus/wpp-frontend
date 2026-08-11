@@ -19,7 +19,7 @@ const sanitizeId = (id) => {
 
 export const MessageService = {
   async getMessages(session, chatId, isGroup = false) {
-    const token = SessionService.getSessionToken(session);
+    const token = await SessionService.ensureSessionToken(session);
     const { data } = await axiosInstance.get(`/${session}/get-messages/${chatId}?count=100`, {
       sessionToken: token
     });
@@ -27,7 +27,7 @@ export const MessageService = {
   },
 
   async sendMessage(session, phone, message, isGroup = false, replyMessageId = null, isForwarded = false) {
-    const token = SessionService.getSessionToken(session);
+    const token = await SessionService.ensureSessionToken(session);
     const targetPhone = Array.isArray(phone) ? phone[0] : phone;
     const sanitizedPhone = sanitizePhone(targetPhone);
     const finalReplyId = sanitizeId(replyMessageId);
@@ -55,7 +55,7 @@ export const MessageService = {
   },
 
   async sendFile(session, phone, file, caption = '', isGroup = false, replyMessageId = null) {
-    const token = SessionService.getSessionToken(session);
+    const token = await SessionService.ensureSessionToken(session);
     const targetPhone = Array.isArray(phone) ? phone[0] : phone;
     const sanitizedPhone = sanitizePhone(targetPhone);
 
@@ -87,7 +87,7 @@ export const MessageService = {
   },
 
   async forwardMessage(session, phone, messageId, isGroup = false, fallbackObj = null) {
-    const token = SessionService.getSessionToken(session);
+    const token = await SessionService.ensureSessionToken(session);
     const targetPhone = Array.isArray(phone) ? phone[0] : phone;
     const sanitizedPhone = sanitizePhone(targetPhone);
     const sanitizedMsgId = sanitizeId(messageId);
@@ -114,7 +114,7 @@ export const MessageService = {
   },
 
   async downloadMedia(session, messageOrId) {
-    const token = SessionService.getSessionToken(session);
+    const token = await SessionService.ensureSessionToken(session);
     const { data } = await axiosInstance.post(`/${session}/download-media`, {
       messageId: messageOrId
     }, {

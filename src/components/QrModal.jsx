@@ -2,7 +2,7 @@ import React from 'react';
 import { X, ShieldCheck, RefreshCw } from 'lucide-react';
 
 export const QrModal = ({ qrData, onClose }) => {
-  if (!qrData && !qrData?.length) return null;
+  if (!qrData) return null;
 
   return (
     <div className="fixed inset-0 bg-[#0b141a]/95 backdrop-blur-xl flex items-center justify-center z-[600] p-6">

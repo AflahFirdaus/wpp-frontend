@@ -15,7 +15,7 @@ export default defineConfig({
         // 2. Arahkan ke IP PC yang menjalankan wppconnect-server (backend)
         // WAJIB pakai protokol (http://) supaya tidak salah tafsir jadi port 80.
         // Backend & frontend beda mesin, jadi harus pakai IP backend, bukan localhost.
-        target: 'http://192.168.1.15:21465', 
+        target: 'http://localhost:21465', 
         changeOrigin: true,
         secure: false,
         // 3. Tambahkan rewrite jika backend kamu tidak mengharapkan prefix /api

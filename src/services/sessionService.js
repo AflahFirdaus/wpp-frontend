@@ -3,6 +3,20 @@ import axiosInstance from '../api/axiosInstance';
 const SECRET_KEY = import.meta.env.VITE_WPP_SECRET;
 
 export const SessionService = {
+  async ensureSessionToken(sessionName) {
+    if (!sessionName) return null;
+    let token = localStorage.getItem(`wpp_token_${sessionName}`);
+    if (!token) {
+      try {
+        const auth = await this.generateToken(sessionName);
+        token = auth?.token || auth?.response?.token;
+      } catch (err) {
+        console.error(`Failed to generate token for session ${sessionName}:`, err);
+      }
+    }
+    return token;
+  },
+
   async getAllSessions() {
     const { data } = await axiosInstance.get(`/${SECRET_KEY}/show-all-sessions`);
     const sessionNames = data.response || data;
@@ -14,7 +28,7 @@ export const SessionService = {
         sessionNames.map(async (name) => {
           const sessionName = typeof name === 'string' ? name : name.session || name;
           try {
-            const token = this.getSessionToken(sessionName);
+            const token = await this.ensureSessionToken(sessionName);
             const { data: statusData } = await axiosInstance.get(`/${sessionName}/status-session`, {
               sessionToken: token
             });
@@ -35,18 +49,15 @@ export const SessionService = {
 
   async generateToken(sessionName) {
     const { data } = await axiosInstance.post(`/${sessionName}/${SECRET_KEY}/generate-token`);
-    if (data.token) {
-      localStorage.setItem(`wpp_token_${sessionName}`, data.token);
+    const token = data.token || data.response?.token;
+    if (token) {
+      localStorage.setItem(`wpp_token_${sessionName}`, token);
     }
     return data;
   },
 
   async startSession(sessionName) {
-    let token = localStorage.getItem(`wpp_token_${sessionName}`);
-    if (!token) {
-      const auth = await this.generateToken(sessionName);
-      token = auth.token;
-    }
+    const token = await this.ensureSessionToken(sessionName);
 
     const { data } = await axiosInstance.post(`/${sessionName}/start-session`, {
       waitQrCode: true
@@ -57,7 +68,7 @@ export const SessionService = {
   },
 
   async getSessionStatus(sessionName) {
-    const token = this.getSessionToken(sessionName);
+    const token = await this.ensureSessionToken(sessionName);
     const { data } = await axiosInstance.get(`/${sessionName}/status-session`, {
       sessionToken: token
     });

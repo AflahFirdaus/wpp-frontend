@@ -3,7 +3,7 @@ import { SessionService } from './sessionService';
 
 export const ChatService = {
   async getAllChats(session) {
-    const token = SessionService.getSessionToken(session);
+    const token = await SessionService.ensureSessionToken(session);
     // Menggunakan all-chats (GET) agar performa server tidak lambat
     // karena all-chats-with-messages menarik semua pesan dari setiap chat yang membuat server kehabisan memory/timeout.
     const { data } = await axiosInstance.get(`/${session}/all-chats`, {
@@ -13,7 +13,7 @@ export const ChatService = {
   },
 
   async getArchivedChats(session) {
-    const token = SessionService.getSessionToken(session);
+    const token = await SessionService.ensureSessionToken(session);
     try {
       const { data } = await axiosInstance.get(`/${session}/all-chats-archived`, {
         sessionToken: token
@@ -26,7 +26,7 @@ export const ChatService = {
   },
 
   async getChatContact(session, chatId) {
-    const token = SessionService.getSessionToken(session);
+    const token = await SessionService.ensureSessionToken(session);
     const { data } = await axiosInstance.get(`/${session}/chat-by-id/${chatId}`, {
       sessionToken: token
     });
@@ -34,7 +34,7 @@ export const ChatService = {
   },
 
   async getProfilePic(session, chatId) {
-    const token = SessionService.getSessionToken(session);
+    const token = await SessionService.ensureSessionToken(session);
     try {
       const { data } = await axiosInstance.get(`/${session}/profile-pic/${chatId}`, {
         sessionToken: token
@@ -47,7 +47,7 @@ export const ChatService = {
   },
 
   async getContactDetail(session, phone) {
-    const token = SessionService.getSessionToken(session);
+    const token = await SessionService.ensureSessionToken(session);
     // Membersihkan ID jika ada @c.us untuk mendapatkan nomor murni
     const cleanPhone = (phone.includes('@g.us') || phone.includes('@newsletter')) ? phone : phone.split('@')[0];
     const { data } = await axiosInstance.get(`/${session}/contact/${cleanPhone}`, {
@@ -63,7 +63,7 @@ export const ChatService = {
    * Endpoint ini mengembalikan nomor telepon yang sebenarnya.
    */
   async getPhoneFromLid(session, lid) {
-    const token = SessionService.getSessionToken(session);
+    const token = await SessionService.ensureSessionToken(session);
     const cleanLid = lid.split('@')[0];
     try {
       const { data } = await axiosInstance.get(`/${session}/contact/pn-lid/${cleanLid}`, {
@@ -77,7 +77,7 @@ export const ChatService = {
   },
 
   async getLastSeen(session, phone) {
-    const token = SessionService.getSessionToken(session);
+    const token = await SessionService.ensureSessionToken(session);
     const cleanPhone = (phone.includes('@g.us') || phone.includes('@newsletter')) ? phone : phone.split('@')[0];
     try {
       const { data } = await axiosInstance.get(`/${session}/last-seen/${cleanPhone}`, {
@@ -91,7 +91,7 @@ export const ChatService = {
   },
 
   async subscribePresence(session, phone, isGroup = false) {
-    const token = SessionService.getSessionToken(session);
+    const token = await SessionService.ensureSessionToken(session);
     const cleanPhone = (phone.includes('@g.us') || phone.includes('@newsletter')) ? phone : phone.split('@')[0];
     try {
       const { data } = await axiosInstance.post(`/${session}/subscribe-presence`, {
